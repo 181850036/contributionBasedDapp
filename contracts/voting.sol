@@ -10,17 +10,22 @@ contract voting{
     string public target; // 记录投票内容
     bytes32[] public optionList; // 投票选项
     uint private _deadline; // 投票中止时间
+    address owner; // 构建者
 
     // 构造函数
     constructor(string memory _target, uint _hoursAfter, bytes32[] memory _optionList){
         target = _target;
         _deadline = block.timestamp + _hoursAfter * 1 hours;
         optionList = _optionList;
+        owner = msg.sender;
     }
 
     // 限制当前时间应当早于中止时间
     modifier notExpired(){
-        require(block.timestamp <= _deadline); 
+        require(
+            block.timestamp <= _deadline,
+            "To Late, the vote is over."
+        ); 
         _;
     }
 
@@ -54,5 +59,19 @@ contract voting{
     // 按次获取所有投票选项
     function allOptions() view public returns(bytes32[] memory){
         return optionList;
+    }
+
+    // 限定为持有者调用
+    modifier onlyOwner(){
+        require(
+            msg.sender == owner,
+            "Only owner can call this function"
+        );
+        _;
+    }
+
+    // 回收程序
+    function destroy() public onlyOwner{
+        selfdestruct(payable(msg.sender));
     }
 }
