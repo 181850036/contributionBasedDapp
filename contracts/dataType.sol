@@ -31,6 +31,7 @@ struct contributor {
     uint256 contribution;     // 总贡献度
     uint256 balance;          // 为执行贡献度
     uint256 bonusBalance;     // 可以参与分红的贡献度
-    uint256 cridit;           // 好像不用做？
+    uint256 credit;           // 信誉分
+    bool isArbitrator;         // 是否是仲裁者
     uint256 lastInvestTime;   // 用户某一个月第一次充值的时间，后面的充值会和这个值比较，如果不足一个月则不计入分红。
 }
