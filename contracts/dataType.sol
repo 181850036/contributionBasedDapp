@@ -5,7 +5,7 @@ pragma solidity >=0.4.0 <0.9.0;
 enum requirementImportance { P0, P1, P2 } //需求重要性参数
 
 struct project {
-    bytes32 name;
+    string name;
     address creator;
     projectVisibleInfo visibleInfo; // 项目可见信息
     mapping(address => contributor) contributors;
@@ -15,8 +15,9 @@ struct project {
     uint256 modifyDuration;          // 项目参数修改投票时长
     uint256 codeReviewDuration;      // 评审代码时投票时间
     uint256 linesCommitPerContri;    // 每获取一贡献度需要贡献的代码行数
-    uint256 etherPerContri;          // 每获取一贡献度需要贡献的金额
+    uint256 weiPerContri;          // 每获取一贡献度需要贡献的金额
     uint256 linesBuyPerContri;       // 每一贡献度能够换取的代码权限的行数
+    bool isUsed;
 }
 
 struct projectVisibleInfo {

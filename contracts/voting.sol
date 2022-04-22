@@ -42,7 +42,7 @@ contract voting{
     // 判断用户是否有权利投票
     modifier canVote(){
         require(
-            hasVoted[msg.sender] = false,
+            hasVoted[msg.sender] == false,
             "You have voted and cannot vote again."
         );
         _;
