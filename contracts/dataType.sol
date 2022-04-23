@@ -17,6 +17,8 @@ struct project {
     uint256 linesCommitPerContri;    // 每获取一贡献度需要贡献的代码行数
     uint256 weiPerContri;          // 每获取一贡献度需要贡献的金额
     uint256 linesBuyPerContri;       // 每一贡献度能够换取的代码权限的行数
+    uint256 contriThreshold;    // 做出贡献是否需要投票审核的贡献度阈值
+    uint256 totalContri;    // 项目总贡献度
     bool isUsed;
 }
 
@@ -30,7 +32,7 @@ struct projectVisibleInfo {
 struct contributor {
     address addr;
     uint256 contribution;     // 总贡献度
-    uint256 balance;          // 为执行贡献度
+    uint256 balance;          // 未执行贡献度
     uint256 bonusBalance;     // 可以参与分红的贡献度
     uint256 credit;           // 信誉分
     bool isArbitrator;         // 是否是仲裁者
