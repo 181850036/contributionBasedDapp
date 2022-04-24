@@ -3,6 +3,7 @@
 pragma solidity >=0.4.0 <0.9.0;
 
 import "./dataType.sol";
+import "./voting.sol";
 
 contract contribution{
 
@@ -58,7 +59,7 @@ contract contribution{
         _to.transfer(address(this).balance);
     }
     // 解决/维护项目中的bug(任务)，获得贡献度
-    function getReward(string memory projectName, uint256 changeLines) public payable returns(uint){
+    function getReward(string memory projectName, uint256 changeLines, string memory target, uint hoursAfter, bytes32[] memory optionList) public payable returns(uint){
         uint256 contriToReward = changeLines / projects[projectName].linesCommitPerContri;
         require(projects[projectName].totalContri != 0);
         if (projects[projectName].contributors[msg.sender].contribution / projects[projectName].totalContri >= projects[projectName].contriThreshold) {
@@ -67,9 +68,15 @@ contract contribution{
             projects[projectName].totalContri += contriToReward;
         }
         else {
-            // 投票审核
+            string memory types = "getReward";
+            new voting(projectName, target, hoursAfter, optionList, types);
         }
         return contriToReward;
+    }
+    // 填写问卷加入项目
+    function sendQuestionnaire(string memory projectName, string memory target, uint hoursAfter, bytes32[] memory optionList) public payable {
+        string memory types = "sendQuestionnaire";
+        new voting(projectName, target, hoursAfter, optionList, types);
     }
 
 

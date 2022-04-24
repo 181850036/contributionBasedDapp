@@ -9,6 +9,7 @@ contract voting{
     mapping (bytes32 => uint ) public contributionReceived; // 收到的贡献度
     string public target; // 记录投票内容
     bytes32[] public optionList; // 投票选项
+    string public types; // 记录投票类型
     uint private deadline; // 投票中止时间
     address owner; // 构建者
     mapping (address => bool) public hasVoted;// 判断是否已经投过票 默认初始值为false
@@ -17,10 +18,11 @@ contract voting{
     event CreateVoting(string _projectName);
 
     // 构造函数
-    constructor(string memory _projectName, string memory _target, uint _hoursAfter, bytes32[] memory _optionList){
+    constructor(string memory _projectName, string memory _target, uint _hoursAfter, bytes32[] memory _optionList, string memory _types){
         target = _target;
         deadline = block.timestamp + _hoursAfter * 1 hours;
         optionList = _optionList;
+        types = _types;
         owner = msg.sender;
         emit CreateVoting(_projectName); // 触发合约级事件
     }
