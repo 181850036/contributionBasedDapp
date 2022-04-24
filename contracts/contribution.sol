@@ -90,24 +90,24 @@ contract contribution{
         _;
     }
 
-    function creditArbitrationVerify(string memory projectName,address _target) private {
+    function creditArbitrationVerify(string memory projectName,address _target) private view {
         require(projects[projectName].isUsed, "Project with this name not exist"); // 验证项目存在
         require(projects[projectName].contributors[_target].addr == _target, "No such account."); // 验证项目中包含此账户
-        require(!projects[projectName].creditArbitration[_target].ifExist,"Credit arbitration of this target already exist."); // 验证项目中包含此仲裁
+        require(!projects[projectName].creditArbitrationMap[_target].ifExist,"Credit arbitration of this target already exist."); // 验证项目中包含此仲裁
     }
 
     // 发起信誉分仲裁
     function initiateArbitration(string memory projectName,address _target,uint256 duration,uint8 _severity) public onlyArbitrator {
         creditArbitrationVerify(projectName, _target);
 
-        projects[projectName].creditArbitration[_target].initiator = msg.sender;
-        projects[projectName].creditArbitration[_target].target = _target;
-        projects[projectName].creditArbitration[_target].startTime = block.timestamp;
-        projects[projectName].creditArbitration[_target].endTime = block.timestamp + duration * 1 hours;
-        projects[projectName].creditArbitration[_target].severity = _severity;
-        projects[projectName].creditArbitration[_target].approve = 0;
-        projects[projectName].creditArbitration[_target].reject = 0;
-        projects[projectName].creditArbitration[_target].ifExist = true;
+        projects[projectName].creditArbitrationMap[_target].initiator = msg.sender;
+        projects[projectName].creditArbitrationMap[_target].target = _target;
+        projects[projectName].creditArbitrationMap[_target].startTime = block.timestamp;
+        projects[projectName].creditArbitrationMap[_target].endTime = block.timestamp + duration * 1 hours;
+        projects[projectName].creditArbitrationMap[_target].severity = _severity;
+        projects[projectName].creditArbitrationMap[_target].approve = 0;
+        projects[projectName].creditArbitrationMap[_target].reject = 0;
+        projects[projectName].creditArbitrationMap[_target].ifExist = true;
 
     }
 
@@ -133,27 +133,27 @@ contract contribution{
     function creditArbitrationVote(string memory projectName,address _target,bool ifApprove) public onlyArbitrator {
         creditArbitrationVerify(projectName, _target);
 
-        creditArbitration storage ca = projects[projectName].creditArbitration[_target];
+        creditArbitration storage ca = projects[projectName].creditArbitrationMap[_target];
 
         require(!ca.hasArbitrated[msg.sender],"You can only arbitrate once.");  // 只能进行一次投票
         require(block.timestamp <= ca.endTime, "The arbitration is over.");  // 只能在结束前投票
 
-        if(ifApprove) projects[projectName].creditArbitration[_target].approve += 1;
-        else projects[projectName].creditArbitration[_target].reject += 1;
+        if(ifApprove) projects[projectName].creditArbitrationMap[_target].approve += 1;
+        else projects[projectName].creditArbitrationMap[_target].reject += 1;
 
-        projects[projectName].creditArbitration[_target].hasArbitrated[msg.sender] = true;
+        projects[projectName].creditArbitrationMap[_target].hasArbitrated[msg.sender] = true;
     }
 
     // 执行仲裁
     function execute(string memory projectName,address _target) public onlyArbitrator {
         creditArbitrationVerify(projectName, _target);
 
-        creditArbitration storage ca = projects[projectName].creditArbitration[_target];
+        creditArbitration storage ca = projects[projectName].creditArbitrationMap[_target];
 
         if(ca.approve > ca.reject) {
-            projects[projectName].contributors[_target].credit -= projects[projectName].creditArbitration[_target].severity;
+            projects[projectName].contributors[_target].credit -= projects[projectName].creditArbitrationMap[_target].severity;
         }
 
-        projects[projectName].creditArbitration[_target].ifExist = false;
+        projects[projectName].creditArbitrationMap[_target].ifExist = false;
     }
 }

@@ -20,7 +20,7 @@ struct project {
     uint256 contriThreshold;    // 做出贡献是否需要投票审核的贡献度阈值
     uint256 totalContri;    // 项目总贡献度
     bool isUsed;
-    mapping (address => creditArbitration) creditArbitration; //信誉分仲裁列表 (每个账户地址对应一个，即一个账户只能同时进行一项仲裁)
+    mapping (address => creditArbitration) creditArbitrationMap; //信誉分仲裁列表 (每个账户地址对应一个，即一个账户只能同时进行一项仲裁)
 }
 
 struct projectVisibleInfo {
