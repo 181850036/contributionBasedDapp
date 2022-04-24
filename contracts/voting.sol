@@ -56,6 +56,11 @@ contract voting{
         contributionReceived[_option] += contributorInfo[msg.sender].contribution;
     }
 
+    // 推迟结束时间
+    function delayDeadline(uint _hours) public notExpired onlyOwner{
+        deadline = deadline + _hours * 1 hours;
+    }
+
     // 获取目标所收到的所有贡献度
     function totalContributionFor(bytes32 _option) view public returns(uint){
         return contributionReceived[_option];
@@ -79,6 +84,11 @@ contract voting{
     // 按次获取所有投票选项
     function getAllOptions() view public returns(bytes32[] memory){
         return optionList;
+    }
+
+    // 获取投票截止时间
+    function getDeadline() view public returns(uint){
+        return deadline;
     }
 
     // 回收程序
