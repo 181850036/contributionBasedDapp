@@ -15,7 +15,7 @@ contract voting{
     mapping (address => bool) public hasVoted;// 判断是否已经投过票 默认初始值为false
 
     // 申明合约级事件，创建投票活动
-    event CreateVoting(string _projectName);
+    event CreateVoting(string _projectName, string _target, uint _hoursAfter, bytes32[] _optionList, string _types);
 
     // 构造函数
     constructor(string memory _projectName, string memory _target, uint _hoursAfter, bytes32[] memory _optionList, string memory _types){
@@ -24,7 +24,7 @@ contract voting{
         optionList = _optionList;
         types = _types;
         owner = msg.sender;
-        emit CreateVoting(_projectName); // 触发合约级事件
+        emit CreateVoting(_projectName, _target, _hoursAfter, _optionList, _types); // 触发合约级事件
     }
 
     // 限制-当前时间应当早于中止时间
@@ -90,6 +90,11 @@ contract voting{
     // 按次获取所有投票选项
     function getAllOptions() view public returns(bytes32[] memory){
         return optionList;
+    }
+
+    // 获取投票类别
+    function getType() view public returns(string memory){
+        return types;
     }
 
     // 获取投票截止时间
