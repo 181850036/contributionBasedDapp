@@ -20,6 +20,7 @@ struct project {
     uint256 contriThreshold;    // 做出贡献是否需要投票审核的贡献度阈值
     uint256 totalContri;    // 项目总贡献度
     bool isUsed;
+    mapping (address => creditArbitration) creditArbitration; //信誉分仲裁列表 (每个账户地址对应一个，即一个账户只能同时进行一项仲裁)
 }
 
 struct projectVisibleInfo {
@@ -37,4 +38,16 @@ struct contributor {
     uint256 credit;           // 信誉分
     bool isArbitrator;         // 是否是仲裁者
     uint256 lastInvestTime;   // 用户某一个月第一次充值的时间，后面的充值会和这个值比较，如果不足一个月则不计入分红。
+}
+
+struct creditArbitration {
+    address initiator;         // 发起人
+    address target;            // 仲裁目标
+    uint256 startTime;         // 开始时间
+    uint256 endTime;           // 结束时间
+    uint8 severity;            // 严重程度(1-10)
+    uint256 approve;           // 赞成数
+    uint256 reject;            // 反对数
+    mapping (address => bool) hasArbitrated;     // 已经投票的仲裁者
+    bool ifExist;
 }
