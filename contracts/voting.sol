@@ -60,6 +60,11 @@ contract voting{
         contributionReceived[_option] += contributorInfo[msg.sender].contribution;
     }
 
+    // 推迟结束时间
+    function delayDeadline(uint _hours) public notExpired onlyOwner{
+        deadline = deadline + _hours * 1 hours;
+    }
+
     // 获取目标所收到的所有贡献度
     function totalContributionFor(bytes32 _option) view public returns(uint){
         return contributionReceived[_option];
@@ -93,9 +98,5 @@ contract voting{
     // 回收程序
     function destroy() public onlyOwner{
         selfdestruct(payable(msg.sender));
-    }
-
-    function voted() view public returns(bool){
-        return hasVoted[msg.sender];
     }
 }
