@@ -13,12 +13,16 @@ contract voting{
     address owner; // 构建者
     mapping (address => bool) public hasVoted;// 判断是否已经投过票 默认初始值为false
 
+    // 申明合约级事件，创建投票活动
+    event CreateVoting(string _projectName);
+
     // 构造函数
-    constructor(string memory _target, uint _hoursAfter, bytes32[] memory _optionList){
+    constructor(string memory _projectName, string memory _target, uint _hoursAfter, bytes32[] memory _optionList){
         target = _target;
         deadline = block.timestamp + _hoursAfter * 1 hours;
         optionList = _optionList;
         owner = msg.sender;
+        emit CreateVoting(_projectName); // 触发合约级事件
     }
 
     // 限制-当前时间应当早于中止时间
@@ -56,11 +60,6 @@ contract voting{
         contributionReceived[_option] += contributorInfo[msg.sender].contribution;
     }
 
-    // 推迟结束时间
-    function delayDeadline(uint _hours) public notExpired onlyOwner{
-        deadline = deadline + _hours * 1 hours;
-    }
-
     // 获取目标所收到的所有贡献度
     function totalContributionFor(bytes32 _option) view public returns(uint){
         return contributionReceived[_option];
@@ -94,5 +93,9 @@ contract voting{
     // 回收程序
     function destroy() public onlyOwner{
         selfdestruct(payable(msg.sender));
+    }
+
+    function voted() view public returns(bool){
+        return hasVoted[msg.sender];
     }
 }
