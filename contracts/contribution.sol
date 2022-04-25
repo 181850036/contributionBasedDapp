@@ -97,13 +97,18 @@ contract contribution{
     }
 
     // 发起信誉分仲裁
-    function initiateArbitration(string memory projectName,address _target,uint256 duration,uint8 _severity) public onlyArbitrator {
+    function initiateArbitration(string memory projectName,address _target,uint256 duration,uint8 _severity,string memory _reason) public onlyArbitrator {
         creditArbitrationVerify(projectName, _target);
+
+        require(_severity>=1 && _severity<=10, "The severity must between 1 and 10.");
+        require(duration>=1, "The duration must longer than 1.");
+        require(bytes(_reason).length > 0, "The reason can not be empty.");
 
         projects[projectName].creditArbitrationMap[_target].initiator = msg.sender;
         projects[projectName].creditArbitrationMap[_target].target = _target;
         projects[projectName].creditArbitrationMap[_target].startTime = block.timestamp;
         projects[projectName].creditArbitrationMap[_target].endTime = block.timestamp + duration * 1 hours;
+        projects[projectName].creditArbitrationMap[_target].reason = _reason;
         projects[projectName].creditArbitrationMap[_target].severity = _severity;
         projects[projectName].creditArbitrationMap[_target].approve = 0;
         projects[projectName].creditArbitrationMap[_target].reject = 0;
@@ -112,22 +117,16 @@ contract contribution{
     }
 
     // 获取仲裁信息
-    // function getArbitrationInfo(string memory projectName,address _target) view public returns(string memory) {
-    //     creditArbitrationVerify(projectName, _target);
+    function getArbitrationInfo(string memory projectName,address _target) view public returns(address[2] memory, uint256[5] memory, string memory) {
+        creditArbitrationVerify(projectName, _target);
 
-    //     creditArbitration storage ca = projects[projectName].creditArbitration[_target];
+        creditArbitration storage ca = projects[projectName].creditArbitrationMap[_target];
 
-    //     string memory result = "{" ;
-    //     result += "'initiator':" + ca.initiator + ",";
-    //     result += "'target':" + ca.target + ",";
-    //     result += "'startTime':" + ca.startTime + ",";
-    //     result += "'endTime':" + ca.endTime + ",";
-    //     result += "'severity':" + ca.severity + ",";
-    //     result += "'approve':" + ca.approve + ",";
-    //     result += "'reject':" + ca.reject + "}";
+        address[2] memory r1 = [ca.initiator, ca.target];
+        uint256[5] memory r2 = [ca.startTime, ca.endTime, ca.severity, ca.approve, ca.reject];
 
-    //     return result;
-    // }
+        return (r1, r2, ca.reason);
+    }
 
     // 进行仲裁投票
     function creditArbitrationVote(string memory projectName,address _target,bool ifApprove) public onlyArbitrator {
@@ -151,9 +150,43 @@ contract contribution{
         creditArbitration storage ca = projects[projectName].creditArbitrationMap[_target];
 
         if(ca.approve > ca.reject) {
-            projects[projectName].contributors[_target].credit -= projects[projectName].creditArbitrationMap[_target].severity;
+            // 信誉分申诉
+            if(ca.severity == 0) {
+                projects[projectName].contributors[_target].credit = 60;
+            }
+            // 信誉分仲裁
+            else {
+                projects[projectName].contributors[_target].credit -= projects[projectName].creditArbitrationMap[_target].severity;
+
+                // 信誉分小于50改变信誉等级
+                if(projects[projectName].contributors[_target].credit < 50) {
+                    projects[projectName].contributors[_target].creditRating += 1;
+                }
+            }
         }
 
         projects[projectName].creditArbitrationMap[_target].ifExist = false;
+    }
+
+    // 申诉信誉分
+    function creditAppeal(string memory projectName, string memory _reason) public {
+        require(!projects[projectName].creditArbitrationMap[msg.sender].ifExist,"You have arbitration bing processed, please wait until it finished.");
+
+        creditArbitrationVerify(projectName, msg.sender);
+
+        require(projects[projectName].contributors[msg.sender].credit < 50, "Your credit is greater than 50, you do not have to appeal.");
+        require(projects[projectName].contributors[msg.sender].creditRating <= 1, "You can not appeal for too many broken promises.");
+        require(bytes(_reason).length > 0, "The reason can not be empty.");
+
+        projects[projectName].creditArbitrationMap[msg.sender].initiator = msg.sender;
+        projects[projectName].creditArbitrationMap[msg.sender].target = msg.sender;
+        projects[projectName].creditArbitrationMap[msg.sender].startTime = block.timestamp;
+        projects[projectName].creditArbitrationMap[msg.sender].endTime = block.timestamp + 48 hours;
+        projects[projectName].creditArbitrationMap[msg.sender].reason = _reason;
+        projects[projectName].creditArbitrationMap[msg.sender].severity = 0;
+        projects[projectName].creditArbitrationMap[msg.sender].approve = 0;
+        projects[projectName].creditArbitrationMap[msg.sender].reject = 0;
+        projects[projectName].creditArbitrationMap[msg.sender].ifExist = true;
+
     }
 }

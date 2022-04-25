@@ -36,7 +36,8 @@ struct contributor {
     uint256 balance;          // 未执行贡献度
     uint256 bonusBalance;     // 可以参与分红的贡献度
     uint256 credit;           // 信誉分
-    bool isArbitrator;         // 是否是仲裁者
+    uint256 creditRating;       // 信用等级 初始为0，信誉分每低于50一次加1，第二次低于50(信誉等级大于1)就无法再参与项目
+    bool isArbitrator;        // 是否是仲裁者
     uint256 lastInvestTime;   // 用户某一个月第一次充值的时间，后面的充值会和这个值比较，如果不足一个月则不计入分红。
 }
 
@@ -45,7 +46,8 @@ struct creditArbitration {
     address target;            // 仲裁目标
     uint256 startTime;         // 开始时间
     uint256 endTime;           // 结束时间
-    uint8 severity;            // 严重程度(1-10)
+    string reason;             // 原因
+    uint256 severity;            // 严重程度(1-10) 当此项==0表示这一项仲裁是恢复信誉分仲裁
     uint256 approve;           // 赞成数
     uint256 reject;            // 反对数
     mapping (address => bool) hasArbitrated;     // 已经投票的仲裁者
