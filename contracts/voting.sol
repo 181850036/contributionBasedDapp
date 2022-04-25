@@ -9,16 +9,22 @@ contract voting{
     mapping (bytes32 => uint ) public contributionReceived; // 收到的贡献度
     string public target; // 记录投票内容
     bytes32[] public optionList; // 投票选项
+    string public types; // 记录投票类型
     uint private deadline; // 投票中止时间
     address owner; // 构建者
     mapping (address => bool) public hasVoted;// 判断是否已经投过票 默认初始值为false
 
+    // 申明合约级事件，创建投票活动
+    event CreateVoting(string _projectName, string _target, uint _hoursAfter, bytes32[] _optionList, string _types);
+
     // 构造函数
-    constructor(string memory _target, uint _hoursAfter, bytes32[] memory _optionList){
+    constructor(string memory _projectName, string memory _target, uint _hoursAfter, bytes32[] memory _optionList, string memory _types){
         target = _target;
         deadline = block.timestamp + _hoursAfter * 1 hours;
         optionList = _optionList;
+        types = _types;
         owner = msg.sender;
+        emit CreateVoting(_projectName, _target, _hoursAfter, _optionList, _types); // 触发合约级事件
     }
 
     // 限制-当前时间应当早于中止时间
@@ -84,6 +90,11 @@ contract voting{
     // 按次获取所有投票选项
     function getAllOptions() view public returns(bytes32[] memory){
         return optionList;
+    }
+
+    // 获取投票类别
+    function getType() view public returns(string memory){
+        return types;
     }
 
     // 获取投票截止时间
