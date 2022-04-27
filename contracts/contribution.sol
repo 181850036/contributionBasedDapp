@@ -224,4 +224,26 @@ contract contribution{
         projects[projectName].creditArbitrationMap[msg.sender].ifExist = true;
 
     }
+
+    // 信誉分增长最大值
+    function creditIncreasingMax(string memory projectName,address userAddr) public view returns(ufixed){
+        uint8 creditIncreasingLevel = getCreditIncreasingLevel(userAddr,projectName);
+        ufixed increasingMax;
+        ufixed increasingSpeedController=50;
+        for(uint i=0;i<creditIncreasingLevel;i++){
+            if(i+1==creditIncreasingLevel){
+                increasingMax=increasingSpeedController/projects[projectName].contributors[userAddr].credit;
+                break;
+            }
+            increasingSpeedController-=i*10;
+        }
+        if(increasingMax<0.1)
+            increasingMax=0.1;
+        return increasingMax;
+    }
+
+    function getCreditIncreasingLevel(address userAddr, string memory projectName) public view returns(uint) {
+        return projects[projectName].contributors[userAddr].creditIncreasingLevel;
+    }
+
 }

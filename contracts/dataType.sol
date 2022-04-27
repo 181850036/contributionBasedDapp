@@ -39,6 +39,7 @@ struct contributor {
     uint256 creditRating;       // 信用等级 初始为0，信誉分每低于50一次加1，第二次低于50(信誉等级大于1)就无法再参与项目
     bool isArbitrator;        // 是否是仲裁者
     uint256 lastInvestTime;   // 用户某一个月第一次充值的时间，后面的充值会和这个值比较，如果不足一个月则不计入分红。
+    uint256 creditIncreasingLevel;  // 信用提升速率等级，低于110为1，110-150为2，150-180为3，180-200(max)为4
 }
 
 struct creditArbitration {
