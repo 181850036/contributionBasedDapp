@@ -87,6 +87,10 @@ contract contribution{
 
     // --- 信誉分仲裁 ---
 
+    modifier temp(string memory name) {
+        _;
+    }
+
     // 限制仲裁者执行
     modifier onlyArbitrator(){
         bool isArbitrator = false;
@@ -101,6 +105,14 @@ contract contribution{
         _;
     }
 
+    // 限制某些项必须存在
+    modifier caVerify(string memory projectName,address _target) {
+        require(projects[projectName].isUsed, "Project with this name not exist"); // 验证项目存在
+        require(projects[projectName].contributors[_target].addr == _target, "No such account."); // 验证项目中包含此账户
+        require(!projects[projectName].creditArbitrationMap[_target].ifExist,"Credit arbitration of this target already exist."); // 验证项目中包含此仲裁
+        _;
+    }
+
     function creditArbitrationVerify(string memory projectName,address _target) private view {
         require(projects[projectName].isUsed, "Project with this name not exist"); // 验证项目存在
         require(projects[projectName].contributors[_target].addr == _target, "No such account."); // 验证项目中包含此账户
@@ -108,8 +120,10 @@ contract contribution{
     }
 
     // 发起信誉分仲裁
-    function initiateArbitration(string memory projectName,address _target,uint256 duration,uint8 _severity,string memory _reason) public onlyArbitrator {
-        creditArbitrationVerify(projectName, _target);
+    function initiateArbitration(string memory projectName,address _target,uint256 duration,uint8 _severity,string memory _reason) public
+    onlyArbitrator caVerify(projectName, _target){
+
+        // creditArbitrationVerify(projectName, _target);
 
         require(_severity>=1 && _severity<=10, "The severity must between 1 and 10.");
         require(duration>=1, "The duration must longer than 1.");
@@ -128,8 +142,9 @@ contract contribution{
     }
 
     // 获取仲裁信息
-    function getArbitrationInfo(string memory projectName,address _target) view public returns(address[2] memory, uint256[5] memory, string memory) {
-        creditArbitrationVerify(projectName, _target);
+    function getArbitrationInfo(string memory projectName,address _target) view public
+    caVerify(projectName, _target) returns(address[2] memory, uint256[5] memory, string memory) {
+        // creditArbitrationVerify(projectName, _target);
 
         creditArbitration storage ca = projects[projectName].creditArbitrationMap[_target];
 
@@ -140,8 +155,9 @@ contract contribution{
     }
 
     // 进行仲裁投票
-    function creditArbitrationVote(string memory projectName,address _target,bool ifApprove) public onlyArbitrator {
-        creditArbitrationVerify(projectName, _target);
+    function creditArbitrationVote(string memory projectName,address _target,bool ifApprove) public
+    onlyArbitrator caVerify(projectName, _target) {
+        // creditArbitrationVerify(projectName, _target);
 
         creditArbitration storage ca = projects[projectName].creditArbitrationMap[_target];
 
@@ -154,9 +170,9 @@ contract contribution{
         projects[projectName].creditArbitrationMap[_target].hasArbitrated[msg.sender] = true;
     }
 
-    // 执行仲裁
-    function execute(string memory projectName,address _target) public onlyArbitrator {
-        creditArbitrationVerify(projectName, _target);
+    function execute(string memory projectName,address _target) public
+    onlyArbitrator caVerify(projectName, _target) {
+        // creditArbitrationVerify(projectName, _target);
 
         creditArbitration storage ca = projects[projectName].creditArbitrationMap[_target];
 
@@ -167,10 +183,17 @@ contract contribution{
             }
             // 信誉分仲裁
             else {
-                projects[projectName].contributors[_target].credit -= projects[projectName].creditArbitrationMap[_target].severity;
+                uint256 c = projects[projectName].contributors[_target].credit;
+
+                if(projects[projectName].contributors[_target].credit <= projects[projectName].creditArbitrationMap[_target].severity) {
+                    projects[projectName].contributors[_target].credit = 0;
+                }
+                else {
+                    projects[projectName].contributors[_target].credit -= projects[projectName].creditArbitrationMap[_target].severity;
+                }
 
                 // 信誉分小于50改变信誉等级
-                if(projects[projectName].contributors[_target].credit < 50) {
+                if(c >= 50 && projects[projectName].contributors[_target].credit < 50) {
                     projects[projectName].contributors[_target].creditRating += 1;
                 }
             }
@@ -180,10 +203,11 @@ contract contribution{
     }
 
     // 申诉信誉分
-    function creditAppeal(string memory projectName, string memory _reason) public {
+    function creditAppeal(string memory projectName, string memory _reason) public
+    caVerify(projectName, msg.sender) {
         require(!projects[projectName].creditArbitrationMap[msg.sender].ifExist,"You have arbitration bing processed, please wait until it finished.");
 
-        creditArbitrationVerify(projectName, msg.sender);
+        // creditArbitrationVerify(projectName, msg.sender);
 
         require(projects[projectName].contributors[msg.sender].credit < 50, "Your credit is greater than 50, you do not have to appeal.");
         require(projects[projectName].contributors[msg.sender].creditRating <= 1, "You can not appeal for too many broken promises.");
