@@ -10,6 +10,9 @@ contract contribution{
     mapping(string => project) private projects;
     string[] private projectsKeys;
 
+    // 默认的信誉分增长速率
+    ufixed constant DEFAULT_CREDIT_RATE=0.01;
+
     function createProject (string memory name, uint256 voteInvolvedRate, uint256 voteAdoptedRate,
         uint256 applyDuration, uint256 modifyDuration, uint256 codeReviewDuration,
         uint256 linesCommitPerContri, uint256 weiPerContri,
@@ -47,6 +50,8 @@ contract contribution{
             projects[projectName].contributors[msg.sender].lastInvestTime = block.timestamp;
             projects[projectName].contributors[msg.sender].bonusBalance += contriToBuy;
         }
+        // 购买完需要增加信誉分
+        addCreditByBuyContribution(projectName, msg.sender, msg.value);
         return contriToBuy;
     }
     function getContribution(address userAddr, string memory projectName) public view returns(uint) {
@@ -73,6 +78,9 @@ contract contribution{
             voting vote = new voting(projectName, target, hoursAfter, optionList, types);
             return address(vote);
         }
+        addCreditByGe
+        
+        tReward(projectName,msg.sender,changeLines);
         return address(0);
     }
     // 填写问卷加入项目
@@ -224,6 +232,98 @@ contract contribution{
         projects[projectName].creditArbitrationMap[msg.sender].ifExist = true;
 
     }
+
+    // --- 信誉分增长 --- 
+
+    //验证用户是否加入了项目
+    modifier joined(string memory projectName,address userAddr){
+        require(projects[projectName].contributors[userAddr].addr == userAddr, "No such account."); // 验证项目中包含此账户
+        _;
+    }
+
+    //在增加信誉分之前要保证用户的信誉分大于50
+    modifier enoughCredit(string memory projectName,address userAddr){
+        ufixed credit=projects[projectName].contributors[userAddr].credit;
+        require(credit>=50,"only the credit is greater than 50 can be added");
+        _;
+    }
+
+
+
+    //通过购买贡献度来增加信誉分 这个函数在buyContribution中调用
+    function addCreditByBuyContribution(string memory projectName,address userAddr,unint256 value) public
+    joined(projectName,userAddr) {
+         //这里按照代码行数来增加 购买的贡献度可以转化为代码行数
+        project pro=projects[projectName];
+        uint256 time_diff=block.timestamp-pro.contributors[userAddr].joinTime;
+        //用户加入项目一个月以上并且信誉分大于50才增加信誉分
+        if(time_diff>30*24*60*60&&pro.contributors[userAddr].credit>=50){
+             uint256 contriToBuy=value/pro.weiPerContri;  
+             //等价的行数
+             uint256 lineNum=contriToBuy*pro.linesBuyPerContri;
+             // 通过等价的行数和设定的增长率算出来应该增长的信誉分
+             ufixed add=lineNum*DEFAULT_CREDIT_RATE;
+             ufixed max=creditIncreasingMax(projectName, userAddr);
+             // 如果不超过增长的最大值就加当前值 如果超过就加最大值 以防增长过快
+             if(add<max){
+                 pro.contributors[userAddr].credit+=add;
+             }else{
+                 pro.contributors[userAddr].credit+=max;
+             }
+        }
+        controlCredit(projectName,userAddr);
+    }
+
+    //通过为项目做出贡献来增加信誉分 这个函数在getReward中调用
+    function addCreditByGetReward(string memory projectName,address userAddr,uint256 changeLines) public
+    joined(projectName,userAddr){
+        project pro=projects[projectName];
+        uint256 time_diff=block.timestamp-pro.contributors[userAddr].joinTime;
+        //用户加入项目一个月以上并且信誉分大于50才增加信誉分
+        if(time_diff>30*24*60*60&&pro.contributors[userAddr].credit>=50){
+             ufixed add=changeLines*DEFAULT_CREDIT_RATE;
+             ufixed max=creditIncreasingMax(projectName, userAddr);
+             // 如果不超过增长的最大值就加当前值 如果超过就加最大值 以防增长过快
+             if(add<max){
+                 pro.contributors[userAddr].credit+=add;
+             }else{
+                 pro.contributors[userAddr].credit+=max;
+             }
+        }
+        controlCredit(projectName,userAddr);
+    }
+
+    //限制信誉分增长速度
+    function controlCredit(string memory projectName,address userAddr) public
+    joined(projectName,userAddr){
+        project pro=projects[projectName];
+        //加入的时间
+        uint256 diff_time=block.timestamp-pro.contributors[userAddr].joinTime;
+        ufixed credit=pro.contributors[userAddr].credit;
+        //半年最多110分
+        if(diff_time>=0&&diff_time<=365/2*24*3600){
+            pro.contributors[userAddr].credit=min(credit,110);
+        //三年最多150分
+        }else if(diff_time>365/2*24*3600&&<3*365*24*3600){
+            pro.contributors[userAddr].credit=min(credit,150);
+        //十年最多180分
+        }else if(diff_time>3*365*24*3600&&<10*365*24*3600){
+            pro.contributors[userAddr].credit=min(credit,180);
+        //最多200分
+        }else if(diff_time>=10*365*24){
+            pro.contributors[userAddr].credit=min(credit,200);
+        }
+    
+    //返回两个数中比较小的值
+    function min(ufixed n1,ufixed n2) public view returns(ufixed){
+        if(n1>n2){
+            return n2;
+        }else{
+            return n1;
+        }
+    }
+
+
 
     // 信誉分增长最大值
     function creditIncreasingMax(string memory projectName,address userAddr) public view returns(ufixed){
