@@ -78,9 +78,7 @@ contract contribution{
             voting vote = new voting(projectName, target, hoursAfter, optionList, types);
             return address(vote);
         }
-        addCreditByGe
-        
-        tReward(projectName,msg.sender,changeLines);
+        addCreditByGetReward(projectName,msg.sender,changeLines);
         return address(0);
     }
     // 填写问卷加入项目
