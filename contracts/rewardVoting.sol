@@ -15,7 +15,7 @@ contract rewardVoting{
     mapping (address => bool) public hasVoted;// 判断是否已经投过票 默认初始值为false
     string public projectName; // 记录项目名称
     uint256 public changeLines; // 记录修改行数
-    bool public alreadyGet = false; // 记录是否领取贡献度
+    bool public alreadyGet = false; // 记录是否已领取贡献度
 
     // 申明合约级事件，创建投票活动
     event CreateVoting(string _projectName,uint256 _changeLines, string _target, uint _hoursAfter, string _types);
@@ -36,6 +36,15 @@ contract rewardVoting{
         require(
             block.timestamp <= deadline,
             "To Late, the vote is over."
+        ); 
+        _;
+    }
+
+    // 限定投票已经结束
+    modifier expired(){
+        require(
+            block.timestamp > deadline,
+            "The vote is not over yet."
         ); 
         _;
     }
@@ -71,13 +80,13 @@ contract rewardVoting{
         deadline = deadline + _hours * 1 hours;
     }
 
-    // 设置是否已经领取
+    // 设置是否已领取
     function setAlreadyGet(bool _getOrNot) public {
         alreadyGet = _getOrNot;
     }
 
-    // 获取是否领取
-    function getAlreadyGet() view public returns(bool){
+    // 获取是否已领取
+    function getAlreadyGet() view public expired returns(bool) {
         return alreadyGet;
     } 
 

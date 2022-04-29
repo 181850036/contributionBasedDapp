@@ -14,6 +14,7 @@ contract entryVoting{
     address public owner; // 构建者
     mapping (address => bool) public hasVoted;// 判断是否已经投过票 默认初始值为false
     string public projectName; // 记录项目名称
+    bool public alreadyPermit = false; // 记录是否已批准进入
 
     // 申明合约级事件，创建投票活动
     event CreateVoting(string _projectName, string _target, uint _hoursAfter, string _types);
@@ -33,6 +34,15 @@ contract entryVoting{
         require(
             block.timestamp <= deadline,
             "To Late, the vote is over."
+        ); 
+        _;
+    }
+
+    // 限定投票已经结束
+    modifier expired(){
+        require(
+            block.timestamp > deadline,
+            "The vote is not over yet."
         ); 
         _;
     }
@@ -67,6 +77,16 @@ contract entryVoting{
     function delayDeadline(uint _hours) public notExpired onlyOwner{
         deadline = deadline + _hours * 1 hours;
     }
+
+    // 设置是否已批准
+    function setAlreadyPermit(bool _permitOrNot) public {
+        alreadyPermit = _permitOrNot;
+    }
+
+    // 获取是否已批准
+    function getAlreadyPermit() view public expired returns(bool) {
+        return alreadyPermit;
+    } 
 
     // 获取目标所收到的所有贡献度
     function totalContributionFor(string memory _option) view public returns(uint){

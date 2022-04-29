@@ -3,6 +3,8 @@
 pragma solidity >=0.4.0 <0.9.0;
 
 import "./dataType.sol";
+import "./rewardVoting.sol";
+import "./entryVoting.sol";
 import "./voting.sol";
 
 contract contribution{
@@ -63,31 +65,81 @@ contract contribution{
     function transfer(address payable _to) public {
         _to.transfer(address(this).balance);
     }
-    // 解决/维护项目中的bug(任务)，获得贡献度
-    function getReward(string memory projectName, uint256 changeLines, string memory target, uint hoursAfter, bytes32[] memory optionList) public payable returns(address){
+
+    // 解决/维护项目提交代码，大股东直接获得贡献度，小股东发起审核投票
+    function commitChange(string memory projectName, uint256 changeLines) public payable returns(address){
         require(projects[projectName].isUsed);
-        uint256 contriToReward = changeLines / projects[projectName].linesCommitPerContri;
         require(projects[projectName].totalContri != 0);
+        uint256 contriToReward = changeLines / projects[projectName].linesCommitPerContri;
+        // 大股东直接获得贡献度
         if (projects[projectName].contributors[msg.sender].contribution / projects[projectName].totalContri >= projects[projectName].contriThreshold) {
             projects[projectName].contributors[msg.sender].contribution += contriToReward;
             projects[projectName].contributors[msg.sender].balance += contriToReward;
             projects[projectName].totalContri += contriToReward;
+            return address(0);
         }
+        // 小股东发起审核投票，返回投票地址给提交者
         else {
+            string memory target = "Vote for rewarding contribution";
             string memory types = "getReward";
-            voting vote = new voting(projectName, target, hoursAfter, optionList, types);
-            return address(vote);
+            uint hoursAfter = 24;
+            rewardVoting vote = new rewardVoting(projectName, changeLines, target, hoursAfter, types);
+            return address(vote); 
+        }
+    }
+
+    // 根据审核投票结果领取贡献度奖励
+    function getReward(address voteAdd) public payable {
+        rewardVoting vote = rewardVoting(voteAdd);
+        require(vote.getOwner() == msg.sender);   // 判断发起方是否为合约拥有者（代码提交者）
+        require(!vote.getAlreadyGet());   // 判断是否已领取贡献度
+        string memory projectName = vote.getProjectName();
+        uint agree = vote.totalContributionFor("Agree");
+        uint disagree = vote.totalContributionFor("Disagree");
+        uint abstain = vote.totalContributionFor("Abstain");
+        uint all = agree + disagree +abstain;
+        uint256 changeLines = vote.getChangeLines();
+        uint256 contriToReward = changeLines / projects[projectName].linesCommitPerContri;
+        require(all != 0);
+        if(agree / all > projects[projectName].voteInvolvedRate && agree / all > projects[projectName].voteAdoptedRate) {
+            projects[projectName].contributors[msg.sender].contribution += contriToReward;
+            projects[projectName].contributors[msg.sender].balance += contriToReward;
+            projects[projectName].totalContri += contriToReward;
+            vote.setAlreadyGet(true);
         }
         addCreditByGetReward(projectName,msg.sender,changeLines);
-        return address(0);
     }
-    // 填写问卷加入项目
-    function sendQuestionnaire(string memory projectName, string memory target, uint hoursAfter, bytes32[] memory optionList) public payable returns(address) {
+
+
+    // 填写问卷加入项目，等待审核
+    function sendQuestionnaire(string memory projectName) public payable returns(address) {
         require(projects[projectName].isUsed);
-        string memory types = "sendQuestionnaire";
-        voting vote = new voting(projectName, target, hoursAfter, optionList, types);
+        string memory target = "Vote for entry";
+        string memory types = "permitEntry";
+        uint hoursAfter = 24;
+        entryVoting vote = new entryVoting(projectName, target, hoursAfter, types);
         return address(vote);
     }
+
+    // 根据审核投票结果决定是否准入
+    function permitEntry(address voteAdd) public payable {
+        entryVoting vote = entryVoting(voteAdd);
+        require(vote.getOwner() == msg.sender);   // 判断发起方是否为合约拥有者（问卷提交者）
+        require(!vote.getAlreadyPermit());   // 判断是否已批准进入
+        string memory projectName = vote.getProjectName();
+        uint agree = vote.totalContributionFor("Agree");
+        uint disagree = vote.totalContributionFor("Disagree");
+        uint abstain = vote.totalContributionFor("Abstain");
+        uint all = agree + disagree +abstain;
+        require(all != 0);
+        if(agree / all > projects[projectName].voteInvolvedRate && agree / all > projects[projectName].voteAdoptedRate) {
+            projects[projectName].contributors[msg.sender].addr = msg.sender;
+            projects[projectName].contributors[msg.sender].contribution = 0;
+            projects[projectName].contributors[msg.sender].balance = 0;
+            vote.setAlreadyPermit(true);
+        }
+    }
+
 
 
 
@@ -249,10 +301,10 @@ contract contribution{
 
 
     //通过购买贡献度来增加信誉分 这个函数在buyContribution中调用
-    function addCreditByBuyContribution(string memory projectName,address userAddr,unint256 value) public
+    function addCreditByBuyContribution(string memory projectName,address userAddr,uint256 value) public
     joined(projectName,userAddr) {
          //这里按照代码行数来增加 购买的贡献度可以转化为代码行数
-        project pro=projects[projectName];
+        project storage pro=projects[projectName];
         uint256 time_diff=block.timestamp-pro.contributors[userAddr].joinTime;
         //用户加入项目一个月以上并且信誉分大于50才增加信誉分
         if(time_diff>30*24*60*60&&pro.contributors[userAddr].credit>=50){
@@ -275,7 +327,7 @@ contract contribution{
     //通过为项目做出贡献来增加信誉分 这个函数在getReward中调用
     function addCreditByGetReward(string memory projectName,address userAddr,uint256 changeLines) public
     joined(projectName,userAddr){
-        project pro=projects[projectName];
+        project storage pro=projects[projectName];
         uint256 time_diff=block.timestamp-pro.contributors[userAddr].joinTime;
         //用户加入项目一个月以上并且信誉分大于50才增加信誉分
         if(time_diff>30*24*60*60&&pro.contributors[userAddr].credit>=50){
@@ -294,7 +346,7 @@ contract contribution{
     //限制信誉分增长速度
     function controlCredit(string memory projectName,address userAddr) public
     joined(projectName,userAddr){
-        project pro=projects[projectName];
+        project storage pro=projects[projectName];
         //加入的时间
         uint256 diff_time=block.timestamp-pro.contributors[userAddr].joinTime;
         ufixed credit=pro.contributors[userAddr].credit;
@@ -302,15 +354,16 @@ contract contribution{
         if(diff_time>=0&&diff_time<=365/2*24*3600){
             pro.contributors[userAddr].credit=min(credit,110);
         //三年最多150分
-        }else if(diff_time>365/2*24*3600&&<3*365*24*3600){
+        }else if(diff_time>365/2*24*3600&&diff_time<3*365*24*3600){
             pro.contributors[userAddr].credit=min(credit,150);
         //十年最多180分
-        }else if(diff_time>3*365*24*3600&&<10*365*24*3600){
+        }else if(diff_time>3*365*24*3600&&diff_time<10*365*24*3600){
             pro.contributors[userAddr].credit=min(credit,180);
         //最多200分
         }else if(diff_time>=10*365*24){
             pro.contributors[userAddr].credit=min(credit,200);
         }
+    }
     
     //返回两个数中比较小的值
     function min(ufixed n1,ufixed n2) public view returns(ufixed){
