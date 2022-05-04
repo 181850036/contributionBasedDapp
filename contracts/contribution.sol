@@ -90,16 +90,16 @@ contract contribution{
             string memory target = "Vote for rewarding contribution";
             string memory types = "getReward";
             uint hoursAfter = 24;
-            rewardVoting vote = new rewardVoting(id, changeLines, target, hoursAfter, types);
+            voting vote = new voting(id, changeLines, target, hoursAfter, types);
             return address(vote); 
         }
     }
 
     // 根据审核投票结果领取贡献度奖励
     function getReward(address voteAdd) public payable {
-        rewardVoting vote = rewardVoting(voteAdd);
+        voting vote = voting(voteAdd);
         require(vote.getOwner() == msg.sender);   // 判断发起方是否为合约拥有者（代码提交者）
-        require(!vote.getAlreadyGet());   // 判断是否已领取贡献度
+        require(!vote.getAlready());   // 判断是否已领取贡献度
         uint256 id = vote.getProjectID();
         uint agree = vote.totalContributionFor("Agree");
         uint disagree = vote.totalContributionFor("Disagree");
@@ -112,7 +112,7 @@ contract contribution{
             projects[id].contributors[msg.sender].contribution += contriToReward;
             projects[id].contributors[msg.sender].balance += contriToReward;
             projects[id].totalContri += contriToReward;
-            vote.setAlreadyGet(true);
+            vote.setAlready(true);
         }
         addCreditByGetReward(id,msg.sender,changeLines);
     }
@@ -124,15 +124,15 @@ contract contribution{
         string memory target = "Vote for entry";
         string memory types = "permitEntry";
         uint hoursAfter = 24;
-        entryVoting vote = new entryVoting(id, target, hoursAfter, types);
+        voting vote = new voting(id, 0, target, hoursAfter, types);
         return address(vote);
     }
 
     // 根据审核投票结果决定是否准入
     function permitEntry(address voteAdd) public payable {
-        entryVoting vote = entryVoting(voteAdd);
+        voting vote = voting(voteAdd);
         require(vote.getOwner() == msg.sender);   // 判断发起方是否为合约拥有者（问卷提交者）
-        require(!vote.getAlreadyPermit());   // 判断是否已批准进入
+        require(!vote.getAlready());   // 判断是否已批准进入
         uint256 id = vote.getProjectID();
         uint agree = vote.totalContributionFor("Agree");
         uint disagree = vote.totalContributionFor("Disagree");
@@ -144,7 +144,7 @@ contract contribution{
             projects[id].contributors[msg.sender].contribution = 0;
             projects[id].contributors[msg.sender].balance = 0;
             projects[id].contributors[msg.sender].joinTime = block.timestamp;
-            vote.setAlreadyPermit(true);
+            vote.setAlready(true);
         }
     }
 

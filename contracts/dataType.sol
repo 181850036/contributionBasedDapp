@@ -27,8 +27,7 @@ struct project {
 struct projectVisibleInfo {
     string briefIntro;
     string[] techStack;
-    bytes32 url;
-    // TODO  
+    bytes32 url; 
 }
 
 struct contributor {

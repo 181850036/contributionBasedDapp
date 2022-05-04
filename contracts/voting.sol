@@ -19,7 +19,7 @@ contract voting{
     mapping (address => bool) public hasVoted;// 判断是否已经投过票 默认初始值为false
     uint256 public projectID; // 记录项目名称
     uint256 public changeLines; // 记录修改行数
-    bool public alreadyGet = false; // 记录是否已领取贡献度
+    bool public already = false; // 记录是否已执行
 
     // 申明合约级事件，创建投票活动
     event CreateVoting(uint256 _projectID, uint256 _changeLines, string _target, uint _hoursAfter, string _types);
@@ -85,13 +85,13 @@ contract voting{
     }
 
     // 设置是否已领取
-    function setAlreadyGet(bool _getOrNot) public {
-        alreadyGet = _getOrNot;
+    function setAlready(bool _getOrNot) public {
+        already = _getOrNot;
     }
 
     // 获取是否已领取
-    function getAlreadyGet() view public expired returns(bool) {
-        return alreadyGet;
+    function getAlready() view public expired returns(bool) {
+        return already;
     } 
 
     // 获取目标所收到的所有贡献度
