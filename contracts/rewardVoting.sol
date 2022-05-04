@@ -4,9 +4,6 @@ pragma solidity >=0.4.0 <0.9.0;
 
 import "./dataType.sol";
 
-interface ContributionInterface{
-     function getContribution(address _address, uint256 _projectID) external view returns(uint256);
-}
 
 contract rewardVoting{
     ContributionInterface contributionInterface;
@@ -20,19 +17,22 @@ contract rewardVoting{
     uint256 public projectID; // 记录项目名称
     uint256 public changeLines; // 记录修改行数
     bool public alreadyGet = false; // 记录是否已领取贡献度
-
+    address contriAddr;
     // 申明合约级事件，创建投票活动
-    event CreateVoting(uint256 _projectID, uint256 _changeLines, string _target, uint _hoursAfter, string _types);
+    event CreateVoting(uint256 _projectID, uint256 _changeLines, string _target, uint _hoursAfter, string _types, address _contriAddr, address _owner);
 
     // 构造函数
-    constructor(uint256 _projectID, uint256 _changeLines, string memory _target, uint _hoursAfter, string memory _types){
+    constructor(uint256 _projectID, uint256 _changeLines, string memory _target, uint _hoursAfter, string memory _types, address _contriAddr, address _owner){
         projectID = _projectID;
         changeLines = _changeLines;
         target = _target;
         deadline = block.timestamp + _hoursAfter * 1 hours;
         types = _types;
-        owner = msg.sender;
-        emit CreateVoting(_projectID, _changeLines, _target, _hoursAfter, _types); // 触发合约级事件
+        owner = _owner;
+        contriAddr = _contriAddr;
+
+        contributionInterface = ContributionInterface(_contriAddr);
+        emit CreateVoting(_projectID, _changeLines, _target, _hoursAfter, _types, _contriAddr, _owner); // 触发合约级事件
     }
 
     // 限制-当前时间应当早于中止时间
@@ -73,7 +73,7 @@ contract rewardVoting{
     }
 
     // 向目标选项投票
-    function voteForTarget(string memory _option) public notExpired canVote{
+    function voteForTarget(string memory _option) public payable notExpired canVote{
         uint _index = indexOfOption(_option);
         require( _index != optionList.length );
         contributionReceived[_option] += contributionInterface.getContribution(msg.sender, projectID);

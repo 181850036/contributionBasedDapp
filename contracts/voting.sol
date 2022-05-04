@@ -4,9 +4,6 @@ pragma solidity >=0.4.0 <0.9.0;
 
 import "./dataType.sol";
 
-interface ContributionInterface{
-     function getContribution(address _address, uint256 _projectID) external view returns(uint256);
-}
 
 contract voting{
     ContributionInterface contributionInterface;

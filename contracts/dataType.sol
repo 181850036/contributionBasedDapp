@@ -4,6 +4,10 @@ pragma solidity >=0.4.0 <0.9.0;
 
 enum requirementImportance { P0, P1, P2 } //需求重要性参数
 
+interface ContributionInterface{
+     function getContribution(address _address, uint256 _projectID) external view returns(uint256);
+}
+
 struct project {
     uint256 id;
     string name;

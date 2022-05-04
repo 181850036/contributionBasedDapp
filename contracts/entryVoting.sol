@@ -4,9 +4,6 @@ pragma solidity >=0.4.0 <0.9.0;
 
 import "./dataType.sol";
 
-interface ContributionInterface{
-     function getContribution(address _address, uint256 _projectID) external view returns(uint256);
-}
 
 contract entryVoting{
     ContributionInterface contributionInterface;
@@ -19,18 +16,19 @@ contract entryVoting{
     mapping (address => bool) public hasVoted;// 判断是否已经投过票 默认初始值为false
     uint256 projectID; // 记录项目名称
     bool public alreadyPermit = false; // 记录是否已批准进入
-
+    address contriAddr;
     // 申明合约级事件，创建投票活动
-    event CreateVoting(uint256 _projectID, string _target, uint _hoursAfter, string _types);
+    event CreateVoting(uint256 _projectID, string _target, uint _hoursAfter, string _types, address _contriAddr);
 
     // 构造函数
-    constructor(uint256 _projectID, string memory _target, uint _hoursAfter, string memory _types){
+    constructor(uint256 _projectID, string memory _target, uint _hoursAfter, string memory _types, address _contriAddr){
         projectID = _projectID;
         target = _target;
         deadline = block.timestamp + _hoursAfter * 1 hours;
         types = _types;
         owner = msg.sender;
-        emit CreateVoting(_projectID, _target, _hoursAfter, _types); // 触发合约级事件
+        contriAddr = _contriAddr;
+        emit CreateVoting(_projectID, _target, _hoursAfter, _types, _contriAddr); // 触发合约级事件
     }
 
     // 限制-当前时间应当早于中止时间
