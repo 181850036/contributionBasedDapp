@@ -3,8 +3,8 @@
 pragma solidity >=0.4.0 <0.9.0;
 
 import "./dataType.sol";
-import "./rewardVoting.sol";
-import "./entryVoting.sol";
+// import "./rewardVoting.sol";
+// import "./entryVoting.sol";
 import "./voting.sol";
 
 contract contribution{
@@ -146,6 +146,10 @@ contract contribution{
             projects[id].contributors[msg.sender].joinTime = block.timestamp;
             vote.setAlreadyPermit(true);
         }
+    }
+
+    function getContribution(address _address, uint256 _projectID) public view returns(uint256){
+        return projects[_projectID].contributors[_address].contribution;
     }
 
 
@@ -404,5 +408,6 @@ contract contribution{
     function getCreditIncreasingLevel(address userAddr, uint256 id) public view returns(uint) {
         return projects[id].contributors[userAddr].creditIncreasingLevel;
     }
+
 
 }

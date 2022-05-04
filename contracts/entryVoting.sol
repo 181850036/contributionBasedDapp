@@ -4,9 +4,13 @@ pragma solidity >=0.4.0 <0.9.0;
 
 import "./dataType.sol";
 
+interface ContributionInterface{
+     function getContribution(address _address, uint256 _projectID) external view returns(uint256);
+}
+
 contract entryVoting{
-    mapping (address => contributor) public contributorInfo; // 项目内贡献者详细信息
-    mapping (string => uint ) public contributionReceived; // 收到的贡献度
+    ContributionInterface contributionInterface;
+    mapping (string => uint256 ) public contributionReceived; // 收到的贡献度
     string public target; // 记录投票内容
     string[] public optionList = ["Agree","DisAgree","Abstain"];
     string public types; // 记录投票类型
@@ -70,7 +74,7 @@ contract entryVoting{
     function voteForTarget(string memory _option) public notExpired canVote{
         uint _index = indexOfOption(_option);
         require( _index != optionList.length );
-        contributionReceived[_option] += contributorInfo[msg.sender].contribution;
+        contributionReceived[_option] += contributionInterface.getContribution(msg.sender, projectID);
     }
 
     // 推迟结束时间

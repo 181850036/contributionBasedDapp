@@ -4,9 +4,13 @@ pragma solidity >=0.4.0 <0.9.0;
 
 import "./dataType.sol";
 
+interface ContributionInterface{
+     function getContribution(address _address, uint256 _projectID) external view returns(uint256);
+}
+
 contract rewardVoting{
-    mapping (address => contributor) public contributorInfo; // 项目内贡献者详细信息
-    mapping (string => uint ) public contributionReceived; // 收到的贡献度
+    ContributionInterface contributionInterface;
+    mapping (string => uint256 ) public contributionReceived; // 收到的贡献度
     string public target; // 记录投票内容
     string[] public optionList = ["Agree","DisAgree","Abstain"];
     string public types; // 记录投票类型
@@ -18,10 +22,10 @@ contract rewardVoting{
     bool public alreadyGet = false; // 记录是否已领取贡献度
 
     // 申明合约级事件，创建投票活动
-    event CreateVoting(uint256 _projectID,uint256 _changeLines, string _target, uint _hoursAfter, string _types);
+    event CreateVoting(uint256 _projectID, uint256 _changeLines, string _target, uint _hoursAfter, string _types);
 
     // 构造函数
-    constructor(uint256 _projectID,uint256 _changeLines, string memory _target, uint _hoursAfter, string memory _types){
+    constructor(uint256 _projectID, uint256 _changeLines, string memory _target, uint _hoursAfter, string memory _types){
         projectID = _projectID;
         changeLines = _changeLines;
         target = _target;
@@ -72,7 +76,7 @@ contract rewardVoting{
     function voteForTarget(string memory _option) public notExpired canVote{
         uint _index = indexOfOption(_option);
         require( _index != optionList.length );
-        contributionReceived[_option] += contributorInfo[msg.sender].contribution;
+        contributionReceived[_option] += contributionInterface.getContribution(msg.sender, projectID);
     }
 
     // 推迟结束时间
