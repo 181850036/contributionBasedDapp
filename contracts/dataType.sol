@@ -5,6 +5,7 @@ pragma solidity >=0.4.0 <0.9.0;
 enum requirementImportance { P0, P1, P2 } //需求重要性参数
 
 struct project {
+    uint256 id;
     string name;
     address creator;
     projectVisibleInfo visibleInfo; // 项目可见信息
@@ -40,6 +41,8 @@ struct contributor {
     bool isArbitrator;        // 是否是仲裁者
     uint256 lastInvestTime;   // 用户某一个月第一次充值的时间，后面的充值会和这个值比较，如果不足一个月则不计入分红。
     uint256 creditIncreasingLevel;  // 信用提升速率等级，低于110为1，110-150为2，150-180为3，180-200(max)为4
+    uint256 joinTime;
+    bool isIn;
 }
 
 struct creditArbitration {

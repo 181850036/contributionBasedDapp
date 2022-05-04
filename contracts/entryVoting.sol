@@ -13,20 +13,20 @@ contract entryVoting{
     uint private deadline; // 投票中止时间
     address public owner; // 构建者
     mapping (address => bool) public hasVoted;// 判断是否已经投过票 默认初始值为false
-    string public projectName; // 记录项目名称
+    uint256 projectID; // 记录项目名称
     bool public alreadyPermit = false; // 记录是否已批准进入
 
     // 申明合约级事件，创建投票活动
-    event CreateVoting(string _projectName, string _target, uint _hoursAfter, string _types);
+    event CreateVoting(uint256 _projectID, string _target, uint _hoursAfter, string _types);
 
     // 构造函数
-    constructor(string memory _projectName, string memory _target, uint _hoursAfter, string memory _types){
-        projectName = _projectName;
+    constructor(uint256 _projectID, string memory _target, uint _hoursAfter, string memory _types){
+        projectID = _projectID;
         target = _target;
         deadline = block.timestamp + _hoursAfter * 1 hours;
         types = _types;
         owner = msg.sender;
-        emit CreateVoting(_projectName, _target, _hoursAfter, _types); // 触发合约级事件
+        emit CreateVoting(_projectID, _target, _hoursAfter, _types); // 触发合约级事件
     }
 
     // 限制-当前时间应当早于中止时间
@@ -124,8 +124,8 @@ contract entryVoting{
     }
 
     // 返回项目名称
-    function getProjectName() view public returns(string memory) {
-        return projectName;
+    function getProjectID() view public returns(uint256) {
+        return projectID;
     }
 
     // 返回项目创建者 
