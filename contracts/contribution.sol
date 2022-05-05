@@ -91,7 +91,7 @@ contract contribution{
         else {
             string memory target = "Vote for rewarding contribution";
             string memory types = "getReward";
-            uint hoursAfter = 24;
+            uint256 hoursAfter = projects[id].modifyDuration;
             rewardVoting vote = new rewardVoting(id, changeLines, target, hoursAfter, types, address(this),address(msg.sender));
             return address(vote); 
         }
@@ -126,7 +126,7 @@ contract contribution{
         require(projects[id].isUsed);
         string memory target = "Vote for entry";
         string memory types = "permitEntry";
-        uint hoursAfter = 24;
+        uint256 hoursAfter = projects[id].applyDuration;
         entryVoting vote = new entryVoting(id, target, hoursAfter, types, address(this));
         return address(vote);
     }
