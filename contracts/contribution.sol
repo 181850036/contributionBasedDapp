@@ -44,8 +44,9 @@ contract contribution{
         projects[id].contributors[msg.sender].credit = 100;
         projects[id].contributors[msg.sender].isIn = true;
         return id;
-
     }
+
+    // 购买贡献度
     function buyContribution(uint256 id) public payable returns(uint){
         project storage pro = projects[id];
         uint256 contriToBuy = msg.value / pro.weiPerContri;
@@ -67,6 +68,7 @@ contract contribution{
         //addCreditByBuyContribution(id, msg.sender, msg.value);
         return contriToBuy;
     }
+
     function transfer(address payable _to) public {
         _to.transfer(address(this).balance);
     }
@@ -119,7 +121,7 @@ contract contribution{
     }
 
 
-    // 填写问卷加入项目，等待审核
+    // 外部用户填写问卷加入项目，发起投票审核
     function sendQuestionnaire(uint256 id) public payable returns(address) {
         require(projects[id].isUsed);
         string memory target = "Vote for entry";
