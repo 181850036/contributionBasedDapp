@@ -12,7 +12,6 @@ contract contribution{
     mapping(uint256 => project) private projects;
     uint256[] private projectsKeys;
     uint256 projectID = 0;
-    uint256 private wholeSystemContri;
     // 默认的信誉分增长速率
     uint256 constant DEFAULT_CREDIT_RATE=1;
     // 默认每周项目贡献前百分之1的贡献度与信誉分比率
@@ -21,7 +20,7 @@ contract contribution{
     function createProject (string memory name, uint256 voteInvolvedRate, uint256 voteAdoptedRate,
         uint256 applyDuration, uint256 modifyDuration, uint256 codeReviewDuration,
         uint256 linesCommitPerContri, uint256 weiPerContri,
-        uint256 linesBuyPerContri, uint256 contriThreshold, uint256 entryThreshold ) public returns(uint256) {
+        uint256 linesBuyPerContri, uint256 contriThreshold, uint256 entryThreshold , uint256 bounsRate) public returns(uint256) {
         uint256 id = projectID;
         projects[id].id = id;
         // 预防引用问题
@@ -39,13 +38,14 @@ contract contribution{
         projects[id].entryThreshold = entryThreshold;
         // projects[id].totalContri = totalContri;
         projects[id].creator = msg.sender;
+        projects[id].bounsRate = bounsRate;
         projectsKeys.push(id);
-        projectID ++;
         // 初始化创建者
         projects[id].contributors[msg.sender].addr = msg.sender;
         projects[id].contributors[msg.sender].joinTime = block.timestamp;
         projects[id].contributors[msg.sender].credit = 100;
         projects[id].contributors[msg.sender].isIn = true;
+        projectID ++;
         return id;
     }
 
@@ -68,9 +68,7 @@ contract contribution{
             projects[id].contributors[msg.sender].lastInvestTime = block.timestamp;
             projects[id].contributors[msg.sender].bonusBalance += contriToBuy;
         }
-        // 购买完需要增加信誉分
-        //addCreditByBuyContribution(id, msg.sender, msg.value);
-        wholeSystemContri += contriToBuy;
+        projects[id].profitBalance += msg.value;
         payable(address(this)).transfer(msg.value);
          // 购买完需要增加信誉分
         addCreditByBuyContribution(id, msg.sender, msg.value);
@@ -88,16 +86,16 @@ contract contribution{
     
     receive() external payable {}
     // 分红提现
-    function getBouns(uint256 _projectID) public payable returns(uint256,uint256,uint256,uint256, uint256){
+    function getBouns(uint256 _projectID) public payable {
         require(block.timestamp - projects[_projectID].contributors[msg.sender].lastBounsTime >= 24 * 60 * 60 * 30);
-        uint256 _balance = address(this).balance;
         uint256 personalContri = projects[_projectID].contributors[msg.sender].contribution;
         uint256 proContri = projects[_projectID].totalContri;
         address payable _payableAddr = payable(msg.sender);
-        uint256 bounsAmount =  _balance * personalContri / wholeSystemContri;
+        uint256 bounsAmount =  projects[_projectID].profitBalance * personalContri / proContri * projects[_projectID].bounsRate / 100;
         (_payableAddr).transfer(bounsAmount);
         projects[_projectID].contributors[msg.sender].lastBounsTime = block.timestamp;
-        return (bounsAmount, projects[_projectID].contributors[msg.sender].contribution,projects[_projectID].totalContri,_balance,wholeSystemContri);
+        projects[_projectID].profitBalance -= bounsAmount;
+
     }
 
     // 解决/维护项目提交代码，大股东直接获得贡献度，小股东发起审核投票
@@ -140,7 +138,6 @@ contract contribution{
             projects[id].contributors[msg.sender].contribution += contriToReward;
             projects[id].contributors[msg.sender].balance += contriToReward;
             projects[id].contributors[msg.sender].bonusBalance += contriToReward;
-            wholeSystemContri += contriToReward;
             projects[id].totalContri += contriToReward;
             vote.setAlreadyGet(true);
             addCreditByGetReward(id,msg.sender,changeLines);
@@ -217,6 +214,7 @@ contract contribution{
             else if (isEqual(paramName, "linesBuyPerContri")) {projects[id].linesBuyPerContri = newVal;}
             else if (isEqual(paramName, "contriThreshold")) {projects[id].contriThreshold = newVal;}
             else if (isEqual(paramName, "entryThreshold")) {projects[id].entryThreshold = newVal;}
+            else if (isEqual(paramName, "bounsRate")) {projects[id].bounsRate = newVal;}
             else {
 
             }

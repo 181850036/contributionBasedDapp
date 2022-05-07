@@ -23,6 +23,8 @@ struct project {
     uint256 contriThreshold;    // 做出贡献是否需要投票审核的贡献度阈值
     uint256 entryThreshold;   //加入项目需要购买的贡献度阈值
     uint256 totalContri;    // 项目总贡献度
+    uint256 profitBalance;   // 项目收益余额
+    uint256 bounsRate;    // 每个月项目可用于分红的余额比例
     bool isUsed;
     mapping (address => creditArbitration) creditArbitrationMap; //信誉分仲裁列表 (每个账户地址对应一个，即一个账户只能同时进行一项仲裁)
 }
@@ -43,11 +45,7 @@ struct contributor {
     bool isArbitrator;        // 是否是仲裁者
     uint256 lastInvestTime;   // 用户某一个月第一次充值的时间，后面的充值会和这个值比较，如果不足一个月则不计入分红。
     uint256 creditIncreasingLevel;  // 信用提升速率等级，低于110为1，110-150为2，150-180为3，180-200(max)为4
-<<<<<<< HEAD
-    uint256 joinTime;
     uint256 lastBounsTime;  
-=======
->>>>>>> b8ab459027b868a47e68a248eca5c9428717f615
     bool isIn;
     uint256 joinTime;         // 用户加入项目的时间
     uint256[2][] contributionWithTimestamp;  //每次提交增加的贡献度和时间戳，用于计算一周内的贡献度
