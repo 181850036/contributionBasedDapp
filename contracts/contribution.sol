@@ -409,7 +409,7 @@ contract contribution{
         for(uint k=0;k<sort.length;k++){
             uint256[2][] contri_time=sort[k].contributionWithTimestamp;
             sort[k].week_contri=0;   //清零每周的贡献
-            for(uint p=0;p=contri_time.length;p++){
+            for(uint p=0;p<contri_time.length;p++){
                 uint256[2] one=contri_time[p];
                 //如果是这一周内的贡献度就计入
                 if(time_now-one[1]<7*24*3600){
@@ -436,6 +436,11 @@ contract contribution{
                 }
             }
         }        
+    }
+
+    //用户查询在某个项目内的信誉分
+    function getCredit(uint256 id)public returns(uint256){
+        return projects[id].contributors[msg.sender].credit;
     }
 
     //对贡献者list进行一个快速排序
