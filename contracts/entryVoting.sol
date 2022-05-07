@@ -3,7 +3,7 @@
 pragma solidity >=0.4.0 <0.9.0;
 
 import "./dataType.sol";
-
+import "./interface.sol";
 
 contract entryVoting{
     ContributionInterface contributionInterface;

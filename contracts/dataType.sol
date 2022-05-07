@@ -4,9 +4,6 @@ pragma solidity >=0.4.0 <0.9.0;
 
 enum requirementImportance { P0, P1, P2 } //需求重要性参数
 
-interface ContributionInterface{
-     function getContribution(address _address, uint256 _projectID) external view returns(uint256);
-}
 
 struct project {
     uint256 id;
@@ -23,6 +20,7 @@ struct project {
     uint256 weiPerContri;          // 每获取一贡献度需要贡献的金额
     uint256 linesBuyPerContri;       // 每一贡献度能够换取的代码权限的行数
     uint256 contriThreshold;    // 做出贡献是否需要投票审核的贡献度阈值
+    uint256 entryThreshold;   //加入项目需要购买的贡献度阈值
     uint256 totalContri;    // 项目总贡献度
     bool isUsed;
     mapping (address => creditArbitration) creditArbitrationMap; //信誉分仲裁列表 (每个账户地址对应一个，即一个账户只能同时进行一项仲裁)
@@ -45,6 +43,7 @@ struct contributor {
     uint256 lastInvestTime;   // 用户某一个月第一次充值的时间，后面的充值会和这个值比较，如果不足一个月则不计入分红。
     uint256 creditIncreasingLevel;  // 信用提升速率等级，低于110为1，110-150为2，150-180为3，180-200(max)为4
     uint256 joinTime;
+    uint256 lastBounsTime;  
     bool isIn;
 }
 
