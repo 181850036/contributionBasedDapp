@@ -11,6 +11,7 @@ struct project {
     address creator;
     projectVisibleInfo visibleInfo; // 项目可见信息
     mapping(address => contributor) contributors;
+    address [] allContributors;       //项目所有的贡献者
     uint256 voteInvolvedRate;        // 投票最低参与率
     uint256 voteAdoptedRate;         // 投票最低通过率
     uint256 applyDuration;           // 申请时投票时长
@@ -42,9 +43,15 @@ struct contributor {
     bool isArbitrator;        // 是否是仲裁者
     uint256 lastInvestTime;   // 用户某一个月第一次充值的时间，后面的充值会和这个值比较，如果不足一个月则不计入分红。
     uint256 creditIncreasingLevel;  // 信用提升速率等级，低于110为1，110-150为2，150-180为3，180-200(max)为4
+<<<<<<< HEAD
     uint256 joinTime;
     uint256 lastBounsTime;  
+=======
+>>>>>>> b8ab459027b868a47e68a248eca5c9428717f615
     bool isIn;
+    uint256 joinTime;         // 用户加入项目的时间
+    uint256[2][] contributionWithTimestamp;  //每次提交增加的贡献度和时间戳，用于计算一周内的贡献度
+    uint256 week_contri;      //用户一周的贡献度
 }
 
 struct creditArbitration {
