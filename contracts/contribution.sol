@@ -119,7 +119,6 @@ contract contribution{
             return address(vote); 
         }
     }
-
     // 根据审核投票结果领取贡献度奖励
     function getReward(address voteAdd) public payable {
         rewardVoting vote = rewardVoting(voteAdd);
@@ -133,7 +132,7 @@ contract contribution{
         uint256 changeLines = vote.getChangeLines();
         uint256 contriToReward = changeLines / projects[id].linesCommitPerContri;
         require(all != 0);
-        if(agree / all * 100> projects[id].voteInvolvedRate && agree / all * 100 > projects[id].voteAdoptedRate) {
+        if(all / projects[id].totalContri * 100> projects[id].voteInvolvedRate && agree / all * 100 > projects[id].voteAdoptedRate) {
             projects[id].contributors[msg.sender].contribution += contriToReward;
             projects[id].contributors[msg.sender].balance += contriToReward;
             projects[id].contributors[msg.sender].bonusBalance += contriToReward;
@@ -167,7 +166,7 @@ contract contribution{
         uint abstain = vote.totalContributionFor("Abstain");
         uint all = agree + disagree +abstain;
         require(all != 0);
-        if(agree / all * 100 > projects[id].voteInvolvedRate && agree / all * 100 > projects[id].voteAdoptedRate) {
+        if(all / projects[id].totalContri * 100 > projects[id].voteInvolvedRate && agree / all * 100 > projects[id].voteAdoptedRate) {
             projects[id].contributors[msg.sender].addr = msg.sender;
             projects[id].contributors[msg.sender].contribution = 0;
             projects[id].contributors[msg.sender].balance = 0;
@@ -201,7 +200,7 @@ contract contribution{
         uint256 abstain = vote.getAbstained();
         uint all = agree + disagree +abstain;
         require(all != 0);
-        if(agree / all * 100 > projects[id].voteInvolvedRate && agree / all * 100 > projects[id].voteAdoptedRate) {
+        if(all / projects[id].totalContri * 100 > projects[id].voteInvolvedRate && agree / all * 100 > projects[id].voteAdoptedRate) {
             string memory paramName = vote.getParamName();
             uint newVal = vote.getNewVal();
             if( isEqual(paramName, "voteInvolvedRate")) {projects[id].voteInvolvedRate = newVal;}
