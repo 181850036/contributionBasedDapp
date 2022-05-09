@@ -18,9 +18,10 @@ contract contribution{
     uint256 constant DEFAULT_CREDIT_WEEK_RATE=1;
 
     // 项目初始化
-    function createProject (string memory name, uint256 voteInvolvedRate, uint256 voteAdoptedRate, uint256 applyDuration, 
-        uint256 modifyDuration, uint256 codeReviewDuration, uint256 linesCommitPerContri, uint256 weiPerContri,
-        uint256 linesBuyPerContri, uint256 contriThreshold, uint256 entryThreshold , uint256 bounsRate) public returns(uint256) {
+    function createProject (string memory name, uint256 voteInvolvedRate, uint256 voteAdoptedRate, 
+        uint256 applyDuration, uint256 modifyDuration, uint256 codeReviewDuration, 
+        uint256 linesCommitPerContri, uint256 weiPerContri, uint256 linesBuyPerContri, 
+        uint256 contriThreshold, uint256 entryThreshold , uint256 bounsRate) public returns(uint256) {
         uint256 id = projectID;
         // 初始化项目
         projects[id].id = id;
