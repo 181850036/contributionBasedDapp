@@ -17,14 +17,14 @@ contract contribution{
     // 默认每周项目贡献前百分之1的贡献度与信誉分比率
     uint256 constant DEFAULT_CREDIT_WEEK_RATE=1;
 
-    function createProject (string memory name, uint256 voteInvolvedRate, uint256 voteAdoptedRate,
-        uint256 applyDuration, uint256 modifyDuration, uint256 codeReviewDuration,
-        uint256 linesCommitPerContri, uint256 weiPerContri,
+    // 项目初始化
+    function createProject (string memory name, uint256 voteInvolvedRate, uint256 voteAdoptedRate, uint256 applyDuration, 
+        uint256 modifyDuration, uint256 codeReviewDuration, uint256 linesCommitPerContri, uint256 weiPerContri,
         uint256 linesBuyPerContri, uint256 contriThreshold, uint256 entryThreshold , uint256 bounsRate) public returns(uint256) {
         uint256 id = projectID;
+        // 初始化项目
         projects[id].id = id;
-        // 预防引用问题
-        projects[id].isUsed = true;
+        projects[id].isUsed = true;   // 预防引用问题
         projects[id].name = name;
         projects[id].voteInvolvedRate = voteInvolvedRate;
         projects[id].voteAdoptedRate = voteAdoptedRate;
@@ -36,7 +36,6 @@ contract contribution{
         projects[id].weiPerContri = weiPerContri;
         projects[id].contriThreshold = contriThreshold;
         projects[id].entryThreshold = entryThreshold;
-        // projects[id].totalContri = totalContri;
         projects[id].creator = msg.sender;
         projects[id].bounsRate = bounsRate;
         projectsKeys.push(id);
@@ -72,13 +71,13 @@ contract contribution{
         payable(address(this)).transfer(msg.value);
          // 购买完需要增加信誉分
         addCreditByBuyContribution(id, msg.sender, msg.value);
-
         //更新项目的用户列表
         if(!existContributors(projects[id].allContributors,msg.sender)){
             projects[id].allContributors.push(msg.sender);
         }
         return contriToBuy;
     }
+
     function getBanlance() view public returns(uint256){
         return (address(this).balance);
     }
@@ -151,12 +150,12 @@ contract contribution{
     // 外部用户填写问卷加入项目，发起投票审核
     function sendQuestionnaire(uint256 id) public payable returns(address) {
         require(projects[id].isUsed);
+        require(!projects[id].contributors[msg.sender].isIn);
         string memory target = "Vote for entry";
         string memory types = "permitEntry";
         entryVoting vote = new entryVoting(id, target, projects[id].applyDuration, types, address(this));
         return address(vote);
     }
-
     // 根据审核投票结果决定是否准入
     function permitEntry(address voteAdd) public payable {
         entryVoting vote = entryVoting(voteAdd);
@@ -184,11 +183,12 @@ contract contribution{
         return projects[_projectID].contributors[_address].contribution;
     }
 
+    // 变更属性
     function requestModify(uint256 _projectID, string memory paramName, uint256 newVal) public payable returns(address){
         require(msg.sender == projects[_projectID].creator);
         require(newVal > 0);
         string memory target = "Vote for modify";
-        modifyVoting vote = new modifyVoting(_projectID, paramName, newVal, target, projects[_projectID].modifyDuration,address(this), msg.sender);
+        modifyVoting vote = new modifyVoting(_projectID, paramName, newVal, target, projects[_projectID].modifyDuration, address(this), msg.sender);
         return address(vote);
     }
     function executeModify(address voteAdd) public payable {

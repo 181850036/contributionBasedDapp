@@ -14,14 +14,14 @@ struct project {
     address [] allContributors;       //项目所有的贡献者
     uint256 voteInvolvedRate;        // 投票最低参与率
     uint256 voteAdoptedRate;         // 投票最低通过率
-    uint256 applyDuration;           // 申请时投票时长
-    uint256 modifyDuration;          // 项目参数修改投票时长
-    uint256 codeReviewDuration;      // 评审代码时投票时间
+    uint256 applyDuration;           // 准入评估投票时长
+    uint256 modifyDuration;          // 属性变更投票时长
+    uint256 codeReviewDuration;      // 代码审核投票时长
     uint256 linesCommitPerContri;    // 每获取一贡献度需要贡献的代码行数
     uint256 weiPerContri;          // 每获取一贡献度需要贡献的金额
     uint256 linesBuyPerContri;       // 每一贡献度能够换取的代码权限的行数
-    uint256 contriThreshold;    // 做出贡献是否需要投票审核的贡献度阈值
-    uint256 entryThreshold;   //加入项目需要购买的贡献度阈值
+    uint256 contriThreshold;    // 做出贡献需要投票审核的贡献度阈值
+    uint256 entryThreshold;   // 加入项目需要购买的贡献度阈值
     uint256 totalContri;    // 项目总贡献度
     uint256 profitBalance;   // 项目收益余额
     uint256 bounsRate;    // 每个月项目可用于分红的余额比例
